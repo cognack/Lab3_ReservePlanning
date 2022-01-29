@@ -2,53 +2,41 @@
 title: "Lab 3. Reserve Planning"
 author: "Steven Cognac"
 date: "`r Sys.Date()`"
-output: html_document
-bibliography: "files/prioritizr.bib"
-css: "files/prioritizr-style.css"
-editor_options: 
-  chunk_output_type: console
----
-
-title: "EDS 232 - Lab 2a: Clustering"
-author: "Steven Cognac"
 date: "1/24/2022"
 output: 
   html_document:
     code_folding: show
     toc: true
     toc_float: true
-
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Introduction
+# 1 Introduction
 This lab was created by the developer of the R package [`prioritizr`](https://prioritizr.net/) Jeffrey O. Hanson. I made slight tweaks to streamline code and reduce text.
 
-## Overview
+## 1.1 Overview
 The aim of this workshop is to help you get started with using the prioritizr R package for systematic conservation planning. It is not designed to give you a comprehensive overview and you will not become an expert after completing this workshop. Instead, we want to help you understand the core principles of conservation planning and guide you through some of the common tasks involved with developing prioritizations. In other words, we want to give you the knowledge base and confidence needed to start applying systematic conservation planning to your own work.
 
-You are not alone in this workshop. If you are having trouble, please put your hand up and one of the instructors will help you as soon as they can. You can also ask the people sitting next to you for help too. **Most importantly, the code needed to answer the questions in this workshop are almost always located in the same section as the question. So if you are stuck, try rereading the example code and see if you can modify it to answer the question.** Please note that the first thing an instructor will ask you will be "what have you tried so far?". We can't help you if you haven't tried anything.
 
+## 1.2 R packages
 
 ```{r}
-if (!require("librarian")){
-  install.packages("librarian")
-  library(librarian)
-}
+library(librarian)
 librarian::shelf(
   assertthat, BiocManager, dplyr, gridExtra, here, mapview, 
   prioritizr, prioritizrdata, 
   raster, remotes, rgeos, rgdal, scales, sf, sp, stringr,
   units)
+
 if (!require("lpsymphony")){
   BiocManager::install("lpsymphony")
-  library(lpsymphony)
-}
+  library(lpsymphony)}
 ```
 
-### Data {#data-setup}
+## 1.3 Data Setup
 
 The data for this workshop are available online. To download the data, please  [click on this link](https://github.com/prioritizr/massey-workshop/raw/main/data.zip) and save the `data.zip` file to your computer. Next, unzip the `data.zip` file. You should now have a new folder on your computer called `"data"` which contains the data files (e.g. `pu.shp`).
 
@@ -77,50 +65,9 @@ if (!file.exists(pu_shp)){
 
 There is a wealth of resources available for learning how to use R. Although not required for this workshop, I would highly recommend that you read [_R for Data Science_ by Garrett Grolemund and Hadley Wickham](https://r4ds.had.co.nz/). **This veritable trove of R goodness is freely available online.** If you spend a week going through this book then you will save months debugging and rerunning incorrect code. I would urge any and all ecologists, especially those working on Masters or PhD degrees, to read this book. I even bought this book as a Christmas present for my sister---and, yes, she was happy to receive it! For intermediate users looking to skill-up, I would recommend the [_The Art of R Programming: A Tour of Statistical Software Design_ by Norman Matloff](http://shop.oreilly.com/product/9781593273842.do) and [_Advanced R_ by Hadley Wickham](https://adv-r.hadley.nz/). Finally, if you wish to learn more about using R as a geospatial information system (GIS), I would recommend [_Geocomputation with R_ by Robin Lovelace, Jakub Nowosad, and Jannes Muenchow](https://geocompr.robinlovelace.net/) which is also freely available online. I also recommend [_Applied Spatial Data Analysis_ by Roger S. Bivand, Edzer Pebesma, and Virgilio Gómez-Rubio](https://www.springer.com/gp/book/9781461476177) too.
 
-# Data {#data}
+# 2 Data
 
-## Starting out
-
-We will start by opening RStudio. Ideally, you will have already installed both R and Rstudio before the workshop. If you have not done this already, then please see the [Setting up your computer](#setup) section. **During this workshop, please do not copy and paste code from the workshop manual into RStudio. Instead, please write it out yourself in an R script.** When programming, you will spend a lot of time fixing coding mistakes---that is, debugging your code---so it is best to get used to making mistakes now when you have people here to help you. You can create a new R script by clicking on _File_ in the RStudio menu bar, then _New File_, and then _R Script_.
-
-```{r, out.width = "70%", echo = FALSE}
-knitr::include_graphics("img/lab3_prioritizr/rstudio-new-script.png")
-```
-
-After creating a new script, you will notice that a new _Source_ panel has appeared. In the _Source_ panel, you can type and edit code before you run it. You can run code in the _Source_ panel by placing the cursor (i.e. the blinking line) on the desired line of code and pressing `Control + Enter` on your keyboard (or `CMD + Enter` if you are using an Apple computer). You can save the code in the _Source_ panel by pressing `Control + s` on your keyboard (or `CMD + s` if you are using an Apple computer).
-
-```{r, out.width = "70%", echo = FALSE}
-knitr::include_graphics("img/lab3_prioritizr/rstudio-source.png")
-```
-
-You can also make notes and write your answers to the workshop questions inside the R script. When writing notes and answers, add a `#` symbol so that the text following the `#` symbol is treated as a comment and not code. This means that you don't have to worry about highlighting specific parts of the script to avoid errors.
-
-```{r}
-# this is a comment and R will ignore this text if you run it
-# R will run the code below because it does not start with a # symbol
-print("this is not a comment")
-
-# you can also add comments to the same line of R code too
-print("this is also not a comment") # but this is a comment
-```
-
-**Remember to save your script regularly to ensure that you don't lose anything in the event that RStudio crashes (e.g. using `Control + s` or `CMD + s`)!**
-
-You should have already downloaded the data. If you have not already done so, you can [download it from here](https://github.com/prioritizr/massey-workshop/raw/master/data.zip). After downloading the data, you can unzip the data into a new folder. Next, you will need to set the working directory to this new folder. To achieve this, click on the _Session_ button on the RStudio menu bar, then click _Set Working Directory_, and then _Choose Directory_.
-
-```{r, out.width = "70%", echo = FALSE}
-knitr::include_graphics("img/lab3_prioritizr/rstudio-wd.png")
-```
-
-\clearpage
-
-Now navigate to the folder where you unzipped the data and select _Open_. You can verify that you have correctly set the working directory using the following R code. You should see the output `TRUE` in the _Console_ panel.
-
-## Data import
-
-```{r, include = FALSE}
-n_features <- raster::nlayers(raster::stack(vegetation_tif))
-```
+## 2.1 Data import
 
 Now that we have downloaded the dataset, we will need to import it into our R session. Specifically, this data was obtained from the "Introduction to Marxan" course and was originally a subset of a larger spatial prioritization project performed under contract to Australia’s Department of Environment and Water Resources. It contains vector-based planning unit data (`pu.shp`) and the raster-based data describing the spatial distributions of `r n_features` vegetation classes (`vegetation.tif`) in southern Tasmania, Australia. Please note this dataset is only provided for teaching purposes and should not be used for any real-world conservation planning. We can import the data into our R session using the following code.
 
@@ -136,16 +83,14 @@ pu_data$locked_out <- as.logical(pu_data$locked_out)
 veg_data <- stack(vegetation_tif)
 ```
 
-```{r, include = FALSE}
+```{r}
 assert_that(
   sum(pu_data$locked_in) > 0,
   sum(pu_data$locked_out) > 0,
   sum(pu_data$locked_in & pu_data$locked_out) == 0)
 ```
 
-\clearpage
-
-## Planning unit data
+## 2.2 Planning unit data
 
 The planning unit data contains spatial data describing the geometry for each planning unit and attribute data with information about each planning unit (e.g. cost values). Let's investigate the `pu_data` object. The attribute data contains `r ncol(pu_data)` columns with contain the following information:
 
@@ -212,17 +157,20 @@ Now, you can try and answer some questions about the planning unit data.
 
 ```{block2, type="rmdquestion"}
 1. How many planning units are in the planning unit data?
+  - Response: 516
+
 2. What is the highest cost value?
+  - Response: 47.23834
+
 3. Is there a spatial pattern in the planning unit cost values (hint: use `plot` to make a map)?
+  - Response: Yes. A grouping of high values occur in a strip in the middle. East of the high cost values are very low values and west of the strip are middle range cost values.
 ```
 
-\clearpage
 
-## Vegetation data
+## 2.3 Vegetation data
 
 The vegetation data describe the spatial distribution of `r n_features` vegetation classes in the study area. This data is in a raster format and so the data are organized using a grid comprising square grid cells that are each the same size. In our case, the raster data contains multiple layers (also called "bands") and each layer has corresponds to a spatial grid with exactly the same area and has exactly the same dimensionality (i.e. number of rows, columns, and cells). In this dataset, there are `r n_features` different regular spatial grids layered on top of each other -- with each layer corresponding to a different vegetation class -- and each of these layers contains a grid with `r raster::nrow(veg_data)` rows, `r raster::ncol(veg_data)` columns, and `r nrow(veg_data) * ncol(veg_data)` cells. Within each layer, each cell corresponds to a `r raster::xres(veg_data)/1000` by `r raster::yres(veg_data)/1000` km square. The values associated with each grid cell indicate the (one) presence or (zero) absence of a given vegetation class in the cell.
 
-![](img/lab3_prioritizr/rasterbands.png)
 
 Let's explore the vegetation data.
 
@@ -230,14 +178,26 @@ Let's explore the vegetation data.
 # print a short summary of the data
 print(veg_data)
 
-# plot a map of the 20th vegetation class
-plot(veg_data[[20]])
+# plot a map of the 13th vegetation class
+plot(veg_data[[13]])
+
 ```
 
+
 ```{r, eval = FALSE}
-# plot an interactive map of the 20th vegetation class
-mapview(veg_data[[20]])
+# plot an interactive map of the 13th vegetation class
+mapview(veg_data[[13]])
 ```
+
+
+```{r}
+ncell(veg_data[12])
+
+# calculate the sum of all the cell values in the first layer
+cellStats(veg_data[[12]], "sum")
+
+```
+
 
 ```{r "preview feature data"}
 # print number of rows in the data
@@ -291,8 +251,14 @@ Now, you can try and answer some questions about the vegetation data.
 
 ```{block2, type="rmdquestion"}
 1. What part of the study area is the 13th vegetation class found in (hint: make a map)? For instance, is it in the south-eastern part of the study area?
+   - The 13th vegetation class is found in the north-east corner of the study area
+
 2. What proportion of cells contain the 12th vegetation class?
+   - 
+
+
 3. Which vegetation class is the most abundant (i.e. present in the greatest number of cells)?
+   - 
 
 ```
 
